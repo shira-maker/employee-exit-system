@@ -710,6 +710,12 @@
               <input id="signatureRole" name="signatureRole" autocomplete="off" />
             </div>
 
+            <div class="field">
+              <label for="noticeText">נוסח הודעה מוקדמת</label>
+              <textarea id="noticeText" name="noticeText" autocomplete="off"></textarea>
+              <span class="help-text">אפשר לערוך ידנית. אם השדה ריק, המערכת תשתמש בנוסח ברירת המחדל.</span>
+            </div>
+
             <div id="dynamicFields"></div>
           </form>
 
@@ -917,6 +923,8 @@
     const toast = document.getElementById("toast");
     const noticeDaysInput = document.getElementById("noticeDays");
     const noticeHelp = document.getElementById("noticeHelp");
+    const noticeTextInput = document.getElementById("noticeText");
+    let noticeTextTouched = false;
 
     function formValue(name) {
       const data = new FormData(form);
@@ -1009,6 +1017,38 @@
       return text.trim().replace(/[.!?؟。]+$/g, "");
     }
 
+    function defaultNoticeText() {
+      if (currentCategory === "dismissal") {
+        const noticeMethod = formValue("noticeMethod") === "בעבודה בפועל"
+          ? `בעבודה בפועל עד ליום ${dateValue("workUntilDate")}`
+          : "כתשלום חלף הודעה מוקדמת";
+        return `בהתאם להוראות הדין, הנך זכאית להודעה מוקדמת בת ${formValue("noticeDays")} ימים. ההודעה המוקדמת תינתן ${noticeMethod}.`;
+      }
+
+      if (currentCategory === "abandonment") {
+        return `בהתאם להוראות הדין, היית מחויבת במתן הודעה מוקדמת בת ${formValue("noticeDays")} ימים, והקואופרטיב שומר לעצמו את הזכות לקזז חלף הודעה מוקדמת מגמר החשבון.`;
+      }
+
+      let noticeStatus = formValue("resignationNoticeStatus");
+      if (noticeStatus === "לא ניתנה הודעה מוקדמת") {
+        noticeStatus = rawFormValue("offsetNotice") === "כן, לקזז חלף הודעה מוקדמת"
+          ? "לא ניתנה הודעה מוקדמת ולפיכך הקואופרטיב רשאי לקזז משכרך חלף הודעה מוקדמת"
+          : "לא ניתנה הודעה מוקדמת, ולפנים משורת הדין הוחלט שלא לקזז";
+      }
+      return `בהתאם להוראות הדין, חלה עליך חובה למתן הודעה מוקדמת. תקופת ההודעה המוקדמת לה היית מחויבת הינה ${formValue("noticeDays")} ימים. ${noticeStatus}.`;
+    }
+
+    function noticeText() {
+      const value = rawFormValue("noticeText");
+      return value || defaultNoticeText();
+    }
+
+    function syncNoticeTextDefault() {
+      if (!noticeTextInput) return;
+      if (noticeTextTouched && rawFormValue("noticeText")) return;
+      noticeTextInput.value = defaultNoticeText();
+    }
+
     function canGenerateLetter() {
       return !(currentCategory === "dismissal" && rawFormValue("hearingDone") === "לא");
     }
@@ -1065,13 +1105,6 @@
     }
 
     function buildResignationLetter() {
-      let noticeStatus = formValue("resignationNoticeStatus");
-      if (noticeStatus === "לא ניתנה הודעה מוקדמת") {
-        noticeStatus = rawFormValue("offsetNotice") === "כן, לקזז חלף הודעה מוקדמת"
-          ? "לא ניתנה הודעה מוקדמת ולפיכך הקואופרטיב רשאי לקזז משכרך חלף הודעה מוקדמת"
-          : "לא ניתנה הודעה מוקדמת, ולפנים משורת הדין הוחלט שלא לקזז";
-      }
-
       return `תאריך: ${dateValue("letterDate")}
 ${formValue("deliveryMethod")}
 
@@ -1082,7 +1115,7 @@ ${formValue("deliveryMethod")}
 
 ${baseOpening()}
 ביום ${dateValue("resignationNoticeDate")} הודעת על רצונך להתפטר מעבודתך, וסיום עבודתך בפועל נקבע ליום ${dateValue("endDate")}.
-בהתאם להוראות הדין, חלה עליך חובה למתן הודעה מוקדמת. תקופת ההודעה המוקדמת לה היית מחויבת הינה ${formValue("noticeDays")} ימים. ${noticeStatus}.
+${noticeText()}
 תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
 במסגרת גמר החשבון ישולמו לך כל זכויותייך על פי דין, לרבות שכר עבודה אחרון, פדיון ימי חופשה שלא נוצלו, דמי הבראה ככל שנצברו, וכל זכות נוספת המגיעה לך.
 בתוך עד 30 יום ממועד סיום העסקתך יימסרו לך המסמכים הנדרשים, לרבות טופס 161, אישור תקופת העסקה ומכתב שחרור כספים לקופות הפנסיה/גמל.
@@ -1095,9 +1128,6 @@ ${signature()}`;
       const reason = formValue("dismissalReason");
       const reasonText = cleanSentence(reason);
       const reasonLine = reasonText ? ` ${reasonText}.` : "";
-      const noticeMethod = formValue("noticeMethod") === "בעבודה בפועל"
-        ? `בעבודה בפועל עד ליום ${dateValue("workUntilDate")}`
-        : "כתשלום חלף הודעה מוקדמת";
       const severanceLine = "זכאותך לפיצויי פיטורים תיקבע בהתאם להוראות הדין ולנסיבות סיום העסקתך.";
 
       return `תאריך: ${dateValue("letterDate")}
@@ -1110,7 +1140,7 @@ ${signature()}`;
 ${baseOpening()}
 ביום ${dateValue("hearingDate")} נערך לך הליך שימוע כדין, במסגרתו ניתנה לך הזדמנות מלאה להשמיע את טענותייך בנוגע להמשך העסקתך.
 לאחר בחינת כלל הנסיבות והשיקולים, הוחלט על סיום העסקתך בקואופרטיב.${reasonLine}
-בהתאם להוראות הדין, הנך זכאית להודעה מוקדמת בת ${formValue("noticeDays")} ימים. ההודעה המוקדמת תינתן ${noticeMethod}.
+${noticeText()}
 תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
 ${severanceLine}
 במסגרת גמר החשבון ישולמו לך כל זכויותייך על פי דין, לרבות שכר עבודה אחרון, פדיון חופשה, דמי הבראה וכל זכות נוספת ככל שמגיעה לך.
@@ -1132,7 +1162,7 @@ ${baseOpening()}
 החל מיום ${dateValue("absenceStartDate")} לא התייצבת לעבודה, ללא מתן הודעה מוקדמת וללא הסבר להיעדרותך.
 הקואופרטיב ניסה ליצור עמך קשר במספר הזדמנויות, לרבות בתאריכים ${formValue("contactDates")}, אך לא התקבל מענה ולא שיתפת פעולה עם ניסיונות ההתקשרות.
 בנסיבות אלו, התנהלותך מהווה זניחת עבודה, ולפיכך אנו רואים בכך התפטרות מיוזמתך. מועד סיום יחסי העבודה נקבע ליום ${dateValue("endDate")}.
-בהתאם להוראות הדין, היית מחויבת במתן הודעה מוקדמת בת ${formValue("noticeDays")} ימים, והקואופרטיב שומר לעצמו את הזכות לקזז חלף הודעה מוקדמת מגמר החשבון.
+${noticeText()}
 תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
 במסגרת גמר החשבון ישולמו לך זכויותייך על פי דין, ככל שנצברו, לרבות שכר עבודה, פדיון חופשה ודמי הבראה.
 בתוך עד 30 יום יימסרו לך המסמכים הרלוונטיים, לרבות טופס 161, אישור תקופת העסקה ומכתב שחרור כספים.
@@ -1428,6 +1458,7 @@ ${arabicSignature()}`;
         button.innerHTML = `<strong>${category.title}</strong><span>${category.subtitle}</span>`;
         button.addEventListener("click", () => {
           currentCategory = key;
+          noticeTextTouched = false;
           render();
         });
         categoryList.appendChild(button);
@@ -1540,6 +1571,7 @@ ${arabicSignature()}`;
     function updatePreview() {
       updateNoticeCalculator();
       updateConditionalFields();
+      syncNoticeTextDefault();
       renderSmartAlerts();
       renderLetterPages();
       const disabled = !canGenerateLetter();
@@ -1565,6 +1597,9 @@ ${arabicSignature()}`;
 
     form.addEventListener("input", updatePreview);
     form.addEventListener("change", updatePreview);
+    noticeTextInput.addEventListener("input", () => {
+      noticeTextTouched = true;
+    });
 
     document.getElementById("copyBtn").addEventListener("click", async () => {
       try {
@@ -1595,6 +1630,7 @@ ${arabicSignature()}`;
 
     document.getElementById("resetBtn").addEventListener("click", () => {
       form.reset();
+      noticeTextTouched = false;
       render();
       showToast("הטופס נוקה");
     });
