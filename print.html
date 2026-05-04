@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>מכתב סיום העסקה</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+    }
+
+    body {
+      font-family: Arial, "Noto Sans Hebrew", "Noto Sans Arabic", sans-serif;
+      color: #11101d;
+    }
+
+    .print-page {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      page-break-after: auto;
+      break-after: auto;
+    }
+
+    .print-page + .print-page {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .letterhead {
+      display: block;
+      width: 210mm;
+      height: 297mm;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .print-content {
+      position: absolute;
+      top: 40mm;
+      right: 20mm;
+      bottom: 35mm;
+      left: 20mm;
+      font-size: 11pt;
+      line-height: 1.45;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .arabic .print-content {
+      font-family: Arial, "Noto Sans Arabic", sans-serif;
+    }
+
+    .letter-text {
+      display: grid;
+      gap: 7px;
+    }
+
+    .letter-line {
+      margin: 0;
+    }
+
+    .letter-paragraph {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      align-items: start;
+      margin: 0;
+    }
+
+    .letter-paragraph .number {
+      text-align: left;
+      direction: ltr;
+    }
+
+    .letter-paragraph .content {
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    function decodePayload() {
+      const hash = new URLSearchParams(location.hash.slice(1));
+      const payload = hash.get("payload");
+      if (!payload) return [];
+      return JSON.parse(decodeURIComponent(escape(atob(payload))));
+    }
+
+    function render() {
+      const pages = decodePayload();
+      document.body.innerHTML = pages.map((page) => `
+        <section class="print-page ${page.className}">
+          <img class="letterhead" src="assets/emel-letterhead.png" alt="" />
+          <div class="print-content">${page.html}</div>
+        </section>
+      `).join("");
+    }
+
+    async function printWhenReady() {
+      const images = Array.from(document.querySelectorAll("img"));
+      await Promise.all(images.map((image) => {
+        if (image.complete) return Promise.resolve();
+        if (image.decode) return image.decode().catch(() => undefined);
+        return new Promise((resolve) => {
+          image.onload = resolve;
+          image.onerror = resolve;
+        });
+      }));
+      setTimeout(() => window.print(), 250);
+    }
+
+    render();
+    printWhenReady();
+  </script>
+</body>
+</html>

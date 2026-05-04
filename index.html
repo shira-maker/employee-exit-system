@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>מערכת סיום העסקה</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #ffffff;
+      --surface-soft: #f1e8fb;
+      --text: #241b2e;
+      --muted: #6c5c77;
+      --line: #ddd0e8;
+      --purple: #6b3fa0;
+      --purple-dark: #40215f;
+      --cream: #f3eadf;
+      --blue: #245b82;
+      --amber: #8a5b11;
+      --red: #9b3434;
+      --shadow: 0 18px 45px rgba(64, 33, 95, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans Hebrew", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+    }
+
+    aside {
+      background: var(--purple-dark);
+      color: #fff;
+      padding: 28px 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 30px;
+    }
+
+    .brand strong {
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      color: #c8d2cb;
+      font-size: 14px;
+    }
+
+    .brand-logo {
+      width: 150px;
+      height: 94px;
+      margin-bottom: 12px;
+      object-fit: contain;
+      object-position: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .category-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 26px;
+    }
+
+    .category-button {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      text-align: right;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid;
+      gap: 4px;
+    }
+
+    .category-button strong {
+      font-size: 16px;
+    }
+
+    .category-button span {
+      color: #c8d2cb;
+      font-size: 13px;
+    }
+
+    .category-button.active {
+      background: var(--cream);
+      color: var(--purple-dark);
+      border-color: #fff;
+    }
+
+    .category-button.active span {
+      color: #56635b;
+    }
+
+    .note {
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      padding-top: 18px;
+      color: #dce5df;
+      font-size: 14px;
+    }
+
+    main {
+      padding: 34px;
+      display: grid;
+      gap: 22px;
+      align-content: start;
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      max-width: 780px;
+      margin-top: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    .letter-actions {
+      padding: 0 24px 24px;
+      justify-content: center;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 10px 15px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--purple);
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: var(--cream);
+      border: 1px solid var(--line);
+    }
+
+    .btn:hover {
+      filter: brightness(0.96);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 480px) minmax(360px, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+      display: grid;
+      gap: 4px;
+    }
+
+    .panel-header h2 {
+      font-size: 20px;
+    }
+
+    .panel-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .form {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field.spaced-field {
+      margin-top: 10px;
+    }
+
+    .help-text {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd4ce;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      min-height: 42px;
+      padding: 10px 11px;
+    }
+
+    input[readonly] {
+      background: #f4edf8;
+      color: #34413a;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .choice-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .radio-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf9;
+    }
+
+    .radio-row input {
+      width: 18px;
+      min-height: 18px;
+      margin-top: 3px;
+    }
+
+    .checklist {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: #29332e;
+      font-size: 14px;
+    }
+
+    .check-item input {
+      width: 18px;
+      min-height: 18px;
+      margin-top: 3px;
+    }
+
+    .letter-wrap {
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .letter {
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      width: min(100%, 794px);
+      margin: 0 auto;
+      padding: 0;
+      overflow: visible;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .letter-page {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      width: 100%;
+      aspect-ratio: 794 / 1123;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.58;
+      white-space: pre-wrap;
+      overflow: visible;
+      position: relative;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .letterhead-print {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body.printing .letterhead-print {
+      opacity: 1;
+    }
+
+    .preview-content {
+      position: relative;
+      z-index: 1;
+      padding: 18.9% 9.6% 17%;
+      min-height: 100%;
+    }
+
+    .letter-text {
+      display: grid;
+      gap: 9px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-line {
+      margin: 0;
+    }
+
+    .letter-paragraph {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      align-items: start;
+      margin: 0;
+    }
+
+    .letter-paragraph .number {
+      text-align: left;
+      direction: ltr;
+    }
+
+    .letter-paragraph .content {
+      text-align: right;
+    }
+
+    .letter-page.arabic .letter-paragraph {
+      grid-template-columns: 28px 1fr;
+    }
+
+    .letter-page.arabic .letter-paragraph .number {
+      text-align: left;
+    }
+
+    .letter-page + .letter-page {
+      margin-top: 18px;
+    }
+
+    .letter-page.arabic {
+      direction: rtl;
+      text-align: right;
+      font-family: Arial, "Noto Sans Arabic", sans-serif;
+    }
+
+    .warning {
+      margin: 0 0 14px;
+      border-right: 4px solid var(--amber);
+      background: #fff8e9;
+      color: #523707;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .smart-alerts {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .smart-alert {
+      border-right: 5px solid var(--amber);
+      background: #fff8e9;
+      color: #523707;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .smart-alert.blocking {
+      border-right-color: var(--red);
+      background: #fff0f0;
+      color: #6e1f1f;
+    }
+
+    .task-list {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      background: #17231d;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: 0.2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      aside,
+      .topbar,
+      .form-panel,
+      .warning,
+      .smart-alerts,
+      .letter-actions,
+      .toast {
+        display: none;
+      }
+
+      .app,
+      main,
+      .workspace {
+        display: block;
+        padding: 0;
+      }
+
+      .panel {
+        border: 0;
+        box-shadow: none;
+      }
+
+      .panel-header {
+        display: none;
+      }
+
+      .letter-wrap {
+        padding: 0;
+      }
+
+      .letter {
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+        background: transparent;
+        overflow: visible;
+        width: 210mm;
+        aspect-ratio: auto;
+      }
+
+      .letter-page {
+        border: 0;
+        border-radius: 0;
+        width: 210mm;
+        height: 297mm;
+        max-width: 210mm;
+        max-height: 297mm;
+        padding: 0;
+        margin: 0;
+        font-size: 11pt;
+        line-height: 1.45;
+        overflow: hidden;
+        page-break-after: auto;
+        background: #fff;
+      }
+
+      .letterhead-print {
+        opacity: 1;
+        width: 210mm;
+        height: 297mm;
+      }
+
+      .preview-content {
+        padding: 40mm 20mm 35mm;
+      }
+
+      .letter-page + .letter-page {
+        margin-top: 0;
+        page-break-before: always;
+      }
+
+      .letter-text {
+        gap: 7px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 620px) {
+      main {
+        padding: 20px;
+      }
+
+      .grid-two {
+        grid-template-columns: 1fr;
+      }
+
+      .letter {
+        width: 794px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <img class="brand-logo" src="assets/emel-logo.png" alt="אמל קואופרטיב הניקיון" />
+        <strong>סיום העסקה מסודר</strong>
+        <span>כלי פנימי למנהלות סניפים</span>
+      </div>
+
+      <div class="category-list" id="categoryList"></div>
+
+      <p class="note">
+        הכלי עוזר לנסח ולתעד. לפני שליחה לעובדת יש לוודא שהפרטים נכונים, שההליך בוצע בפועל, ושנוסח המכתב מתאים לנסיבות.
+      </p>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <div>
+          <h1 id="pageTitle">מכתב סיום העסקה</h1>
+          <p class="subtitle" id="pageSubtitle"></p>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel form-panel">
+          <div class="panel-header">
+            <h2>פרטי העובדת וההליך</h2>
+            <p>מלאי רק את מה שרלוונטי. שדות ריקים יופיעו כקו למילוי ידני.</p>
+          </div>
+
+          <form class="form" id="letterForm">
+            <div class="grid-two">
+              <div class="field">
+                <label for="letterDate">תאריך המכתב</label>
+                <input id="letterDate" name="letterDate" type="date" />
+              </div>
+              <div class="field">
+                <label for="deliveryMethod">אופן מסירה</label>
+                <select id="deliveryMethod" name="deliveryMethod">
+                  <option value="במסירה אישית">במסירה אישית</option>
+                  <option value="דוא&quot;ל">דוא"ל</option>
+                  <option value="מסרון">מסרון</option>
+                  <option value="">ללא ציון</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-two">
+              <div class="field">
+                <label for="employeeName">שם העובדת</label>
+                <input id="employeeName" name="employeeName" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="employeeId">תעודת זהות</label>
+                <input id="employeeId" name="employeeId" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="grid-two">
+              <div class="field">
+                <label for="startDate">תחילת עבודה</label>
+                <input id="startDate" name="startDate" type="date" />
+              </div>
+              <div class="field">
+                <label for="endDate">סיום עבודה בפועל</label>
+                <input id="endDate" name="endDate" type="date" />
+              </div>
+            </div>
+
+            <div class="grid-two">
+              <div class="field">
+                <label for="role">תפקיד</label>
+                <input id="role" name="role" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="site">אתר</label>
+                <input id="site" name="site" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="grid-two">
+              <div class="field">
+                <label for="noticeDays">ימי הודעה מוקדמת</label>
+                <input id="noticeDays" name="noticeDays" type="number" min="0" />
+                <span class="help-text" id="noticeHelp"></span>
+              </div>
+              <div class="field">
+                <label for="signatureName">שם החותמת</label>
+                <input id="signatureName" name="signatureName" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="signatureRole">תפקיד החותמת</label>
+              <input id="signatureRole" name="signatureRole" autocomplete="off" />
+            </div>
+
+            <div id="dynamicFields"></div>
+          </form>
+
+          <div class="panel-header">
+            <h2>בדיקות לפני שליחה</h2>
+            <p>רשימת בקרה פנימית למנהלת. היא לא מופיעה במכתב המודפס.</p>
+          </div>
+          <div class="checklist" id="checklist"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>תצוגת המכתב</h2>
+            <p>זה הנוסח שיועתק או יודפס.</p>
+          </div>
+          <div class="letter-wrap">
+            <div class="smart-alerts" id="smartAlerts"></div>
+            <p class="warning">
+              חשוב: זהו כלי עזר פנימי ואינו תחליף לייעוץ משפטי. במקרים חריגים, מחלוקת, הריון, מחלה, מילואים, תלונה, ותק גבוה או נסיבות רגישות - מומלץ להעביר לבדיקה משפטית לפני שליחה.
+            </p>
+            <article class="letter" id="letterPreview"></article>
+          </div>
+          <div class="actions letter-actions">
+            <button class="btn secondary" type="button" id="resetBtn">ניקוי הטופס</button>
+            <button class="btn secondary" type="button" id="copyBtn">העתק מכתב</button>
+            <button class="btn" type="button" id="printBtn">הפק ל-PDF</button>
+          </div>
+        </div>
+
+        <div class="panel form-panel">
+          <div class="panel-header">
+            <h2>משימות להשלמת טיפול בסיום העסקה</h2>
+            <p>רשימת המשך פנימית לאחר הפקת המכתב.</p>
+          </div>
+          <div class="task-list">
+            <label class="check-item"><input type="checkbox" /> <span>להכין מכתב שחרור כספים</span></label>
+            <label class="check-item"><input type="checkbox" /> <span>להעביר לחשבת שכר לגמר חשבון ולהפקת טופס 161</span></label>
+            <label class="check-item"><input type="checkbox" /> <span>לוודא חתימה על טופס 161</span></label>
+            <label class="check-item"><input type="checkbox" /> <span>לתייק את המסמכים בדרייב הארגוני</span></label>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">המכתב הועתק</div>
+
+  <script>
+    const blank = "________";
+    const LETTERHEAD_PATH = "assets/emel-letterhead.png";
+
+    function letterheadUrl() {
+      return new URL(LETTERHEAD_PATH, window.location.href).href;
+    }
+
+    const categories = {
+      resignation: {
+        title: "התפטרות העובדת",
+        subtitle: "כאשר העובדת הודיעה מיוזמתה על רצונה לסיים את עבודתה.",
+        heading: "סיום יחסי עבודה ואישור תקופת העסקה",
+        dynamicFields: [
+          {
+            id: "payType",
+            label: "סוג שכר לצורך חישוב הודעה מוקדמת",
+            type: "select",
+            options: [
+              { value: "hourly", label: "שעתי / יומי" },
+              { value: "monthly", label: "משכורת חודשית" }
+            ]
+          },
+          { id: "resignationNoticeDate", label: "תאריך הודעת ההתפטרות", type: "date" },
+          {
+            id: "resignationNoticeStatus",
+            label: "סטטוס הודעה מוקדמת",
+            type: "radio",
+            options: [
+              "הודעה מוקדמת ניתנה כנדרש",
+              "לא ניתנה הודעה מוקדמת"
+            ]
+          },
+          {
+            id: "includeArabic",
+            label: "האם להוסיף תרגום של המסמך לערבית?",
+            type: "checkbox"
+          },
+          {
+            id: "offsetNotice",
+            label: "האם ברצונך לקזז חלף הודעה מוקדמת מגמר החשבון?",
+            type: "radio",
+            showWhen: { field: "resignationNoticeStatus", value: "לא ניתנה הודעה מוקדמת" },
+            options: [
+              "כן, לקזז חלף הודעה מוקדמת",
+              "לא, לפנים משורת הדין לא לקזז"
+            ]
+          },
+          {
+            id: "lastSalaryPaid",
+            label: "האם השכר האחרון כבר שולם?",
+            type: "radio",
+            showWhen: { field: "resignationNoticeStatus", value: "לא ניתנה הודעה מוקדמת" },
+            options: [
+              "לא",
+              "כן"
+            ]
+          }
+        ],
+        checklist: [
+          "קיימת הודעת התפטרות בכתב או תיעוד ברור של הודעת העובדת.",
+          "נבדק מספר ימי ההודעה המוקדמת לפי הוותק.",
+          "נבדק האם יש יתרת חופשה, הבראה או תשלומים נוספים."
+        ]
+      },
+      dismissal: {
+        title: "פיטורים",
+        subtitle: "כאשר הארגון מחליט על סיום העסקת העובדת לאחר הליך שימוע.",
+        heading: "הודעה על סיום העסקה",
+        dynamicFields: [
+          {
+            id: "hearingDone",
+            label: "האם בוצע שימוע כדין?",
+            type: "radio",
+            options: [
+              "כן",
+              "לא"
+            ]
+          },
+          {
+            id: "includeArabic",
+            label: "האם להוסיף תרגום של המסמך לערבית?",
+            type: "checkbox"
+          },
+          {
+            id: "payType",
+            label: "סוג שכר לצורך חישוב הודעה מוקדמת",
+            type: "select",
+            options: [
+              { value: "hourly", label: "שעתי / יומי" },
+              { value: "monthly", label: "משכורת חודשית" }
+            ]
+          },
+          { id: "hearingDate", label: "תאריך השימוע", type: "date" },
+          { id: "dismissalReason", label: "סיבה עניינית קצרה", type: "textarea", placeholder: "לדוגמה: אי התאמה מקצועית / צמצום פעילות / הפרות משמעת מתועדות" },
+          {
+            id: "noticeMethod",
+            label: "אופן מתן הודעה מוקדמת",
+            type: "radio",
+            options: [
+              "בעבודה בפועל",
+              "כתשלום חלף הודעה מוקדמת"
+            ]
+          },
+          { id: "workUntilDate", label: "אם העובדת ממשיכה לעבוד בתקופת ההודעה המוקדמת - עד איזה יום", type: "date" }
+        ],
+        checklist: [
+          "נשלחה לעובדת הזמנה לשימוע עם פירוט הסיבות.",
+          "השימוע התקיים בפועל והעובדת קיבלה הזדמנות מלאה להשמיע טענות.",
+          "ההחלטה התקבלה רק לאחר השימוע ותועדה.",
+          "נשמרו תיעודים וצילומי מסך רלוונטיים לגבי הנסיבות.",
+          "נבדקו זכויות סיום העסקה, הודעה מוקדמת ופיצויי פיטורים לפי הנסיבות.",
+          "נבדק שאין נסיבות רגישות שמחייבות זהירות נוספת."
+        ]
+      },
+      abandonment: {
+        title: "זניחת עבודה",
+        subtitle: "כאשר העובדת הפסיקה להגיע ולא שיתפה פעולה עם ניסיונות קשר.",
+        heading: "זניחת עבודה וסיום יחסי עבודה",
+        dynamicFields: [
+          {
+            id: "contactAttemptsDocumented",
+            label: "האם תועדו ניסיונות יצירת קשר עם העובדת?",
+            type: "radio",
+            options: [
+              "כן",
+              "לא"
+            ]
+          },
+          {
+            id: "includeArabic",
+            label: "האם להוסיף תרגום של המסמך לערבית?",
+            type: "checkbox"
+          },
+          { id: "absenceStartDate", label: "תחילת ההיעדרות", type: "date" },
+          { id: "contactDates", label: "תאריכי ניסיונות יצירת קשר", type: "text", placeholder: "לדוגמה: 01/04/2026, 03/04/2026, 06/04/2026" }
+        ],
+        checklist: [
+          "תועדו ימי ההיעדרות בפועל.",
+          "בוצעו מספר ניסיונות קשר באמצעים סבירים.",
+          "תועדו תאריכי ושעות ניסיונות הקשר.",
+          "לא התקבל הסבר שמצדיק את ההיעדרות.",
+          "נשקלה שליחת התראה לפני קביעת זניחת עבודה, במיוחד במקרה רגיש."
+        ]
+      }
+    };
+
+    let currentCategory = "resignation";
+
+    const form = document.getElementById("letterForm");
+    const categoryList = document.getElementById("categoryList");
+    const dynamicFields = document.getElementById("dynamicFields");
+    const checklist = document.getElementById("checklist");
+    const preview = document.getElementById("letterPreview");
+    const smartAlerts = document.getElementById("smartAlerts");
+    const title = document.getElementById("pageTitle");
+    const subtitle = document.getElementById("pageSubtitle");
+    const toast = document.getElementById("toast");
+    const noticeDaysInput = document.getElementById("noticeDays");
+    const noticeHelp = document.getElementById("noticeHelp");
+
+    function formValue(name) {
+      const data = new FormData(form);
+      const value = data.get(name);
+      return value && String(value).trim() ? String(value).trim() : blank;
+    }
+
+    function rawFormValue(name) {
+      const value = new FormData(form).get(name);
+      return value ? String(value).trim() : "";
+    }
+
+    function formatDate(value) {
+      if (!value) return blank;
+      const parts = value.split("-");
+      if (parts.length !== 3) return value;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function dateValue(name) {
+      const value = new FormData(form).get(name);
+      return formatDate(value);
+    }
+
+    function completedMonthsBetween(startValue, endValue) {
+      if (!startValue || !endValue) return null;
+      const start = new Date(`${startValue}T00:00:00`);
+      const end = new Date(`${endValue}T00:00:00`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return null;
+      let months = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth();
+      if (end.getDate() < start.getDate()) months -= 1;
+      return Math.max(0, months);
+    }
+
+    function calendarDaysBetween(startValue, endValue) {
+      if (!startValue || !endValue) return null;
+      const start = new Date(`${startValue}T00:00:00`);
+      const end = new Date(`${endValue}T00:00:00`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return null;
+      return Math.floor((end - start) / 86400000) + 1;
+    }
+
+    function calculateNoticeDays(months, payType) {
+      if (months === null) return "";
+      if (payType === "monthly") {
+        if (months >= 12) return 30;
+        if (months <= 6) return months;
+        return 6 + (months - 6) * 2.5;
+      }
+
+      if (months >= 36) return 30;
+      if (months >= 24) return 21 + Math.floor((months - 24) / 2);
+      if (months >= 12) return 14 + Math.floor((months - 12) / 2);
+      return months;
+    }
+
+    function formatDays(days) {
+      if (days === "") return "";
+      return Number.isInteger(days) ? String(days) : days.toFixed(1);
+    }
+
+    function updateNoticeCalculator() {
+      if (currentCategory !== "dismissal" && currentCategory !== "resignation") {
+        noticeDaysInput.readOnly = false;
+        noticeDaysInput.step = "1";
+        noticeHelp.textContent = "";
+        return;
+      }
+
+      const data = new FormData(form);
+      const start = data.get("startDate");
+      const end = data.get("endDate") || data.get("letterDate");
+      const payType = data.get("payType") || "hourly";
+      const months = completedMonthsBetween(start, end);
+      const daysWorked = calendarDaysBetween(start, end);
+      const days = calculateNoticeDays(months, payType);
+
+      noticeDaysInput.readOnly = false;
+      noticeDaysInput.step = "0.5";
+      if (document.activeElement !== noticeDaysInput) {
+        noticeDaysInput.value = formatDays(days);
+      }
+      noticeHelp.textContent = days === ""
+        ? "ימולא אוטומטית לאחר הזנת תאריך תחילת עבודה ותאריך סיום/מכתב ובחירת סוג שכר."
+        : `חושב אוטומטית לפי ${months} חודשי ותק מלאים (${daysWorked} ימים קלנדריים). אפשר לתקן ידנית אם יש הסכם מיטיב, חל"ת שלא נספרת לוותק, או בדיקה משפטית אחרת.`;
+    }
+
+    function cleanSentence(text) {
+      if (text === blank) return "";
+      return text.trim().replace(/[.!?؟。]+$/g, "");
+    }
+
+    function canGenerateLetter() {
+      return !(currentCategory === "dismissal" && rawFormValue("hearingDone") === "לא");
+    }
+
+    function renderSmartAlerts() {
+      const alerts = [];
+
+      if (currentCategory === "resignation" && rawFormValue("lastSalaryPaid") === "כן") {
+        alerts.push({
+          text: "ייתכן שלא ניתן יהיה לבצע קיזוז לאחר תשלום השכר האחרון. מומלץ לבדוק זאת לפני המשך טיפול.",
+          blocking: false
+        });
+      }
+
+      if (currentCategory === "dismissal" && rawFormValue("hearingDone") === "לא") {
+        alerts.push({
+          text: "לא ניתן להפיק מכתב פיטורים לפני ביצוע הליך שימוע כדין.",
+          blocking: true
+        });
+      }
+
+      if (currentCategory === "abandonment" && rawFormValue("contactAttemptsDocumented") === "לא") {
+        alerts.push({
+          text: "מומלץ לתעד ניסיונות יצירת קשר לפני הפקת מכתב זניחת עבודה.",
+          blocking: false
+        });
+      }
+
+      smartAlerts.innerHTML = "";
+      alerts.forEach((alert) => {
+        const item = document.createElement("div");
+        item.className = `smart-alert${alert.blocking ? " blocking" : ""}`;
+        item.textContent = alert.text;
+        smartAlerts.appendChild(item);
+      });
+    }
+
+    function sitePhrase() {
+      const site = formValue("site");
+      return site === blank ? "" : ` ובאתר ${site}`;
+    }
+
+    function baseOpening() {
+      return `התחלת עבודתך בקואופרטיב הניקיון ביום ${dateValue("startDate")}, בתפקיד ${formValue("role")}${sitePhrase()}.`;
+    }
+
+    function signature() {
+      const name = formValue("signatureName");
+      const role = formValue("signatureRole");
+      if (name === blank && role === blank) return "בברכה,";
+      if (role === blank) return `בברכה,\n${name}`;
+      if (name === blank) return `בברכה,\n${role}`;
+      return `בברכה,\n${name}\n${role}`;
+    }
+
+    function buildResignationLetter() {
+      let noticeStatus = formValue("resignationNoticeStatus");
+      if (noticeStatus === "לא ניתנה הודעה מוקדמת") {
+        noticeStatus = rawFormValue("offsetNotice") === "כן, לקזז חלף הודעה מוקדמת"
+          ? "לא ניתנה הודעה מוקדמת ולפיכך הקואופרטיב רשאי לקזז משכרך חלף הודעה מוקדמת"
+          : "לא ניתנה הודעה מוקדמת, ולפנים משורת הדין הוחלט שלא לקזז";
+      }
+
+      return `תאריך: ${dateValue("letterDate")}
+${formValue("deliveryMethod")}
+
+לכבוד: ${formValue("employeeName")}
+ת.ז: ${formValue("employeeId")}
+
+הנדון: סיום יחסי עבודה ואישור תקופת העסקה
+
+${baseOpening()}
+ביום ${dateValue("resignationNoticeDate")} הודעת על רצונך להתפטר מעבודתך, וסיום עבודתך בפועל נקבע ליום ${dateValue("endDate")}.
+בהתאם להוראות הדין, חלה עליך חובה למתן הודעה מוקדמת. תקופת ההודעה המוקדמת לה היית מחויבת הינה ${formValue("noticeDays")} ימים. ${noticeStatus}.
+תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
+במסגרת גמר החשבון ישולמו לך כל זכויותייך על פי דין, לרבות שכר עבודה אחרון, פדיון ימי חופשה שלא נוצלו, דמי הבראה ככל שנצברו, וכל זכות נוספת המגיעה לך.
+בתוך עד 30 יום ממועד סיום העסקתך יימסרו לך המסמכים הנדרשים, לרבות טופס 161, אישור תקופת העסקה ומכתב שחרור כספים לקופות הפנסיה/גמל.
+עם השלמת גמר החשבון והעברת המסמכים כאמור, הסתיימו יחסי העבודה בין הצדדים.
+
+${signature()}`;
+    }
+
+    function buildDismissalLetter() {
+      const reason = formValue("dismissalReason");
+      const reasonText = cleanSentence(reason);
+      const reasonLine = reasonText ? ` ${reasonText}.` : "";
+      const noticeMethod = formValue("noticeMethod") === "בעבודה בפועל"
+        ? `בעבודה בפועל עד ליום ${dateValue("workUntilDate")}`
+        : "כתשלום חלף הודעה מוקדמת";
+      const severanceLine = "זכאותך לפיצויי פיטורים תיקבע בהתאם להוראות הדין ולנסיבות סיום העסקתך.";
+
+      return `תאריך: ${dateValue("letterDate")}
+
+לכבוד: ${formValue("employeeName")}
+ת.ז: ${formValue("employeeId")}
+
+הנדון: הודעה על סיום העסקה
+
+${baseOpening()}
+ביום ${dateValue("hearingDate")} נערך לך הליך שימוע כדין, במסגרתו ניתנה לך הזדמנות מלאה להשמיע את טענותייך בנוגע להמשך העסקתך.
+לאחר בחינת כלל הנסיבות והשיקולים, הוחלט על סיום העסקתך בקואופרטיב.${reasonLine}
+בהתאם להוראות הדין, הנך זכאית להודעה מוקדמת בת ${formValue("noticeDays")} ימים. ההודעה המוקדמת תינתן ${noticeMethod}.
+תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
+${severanceLine}
+במסגרת גמר החשבון ישולמו לך כל זכויותייך על פי דין, לרבות שכר עבודה אחרון, פדיון חופשה, דמי הבראה וכל זכות נוספת ככל שמגיעה לך.
+בתוך עד 30 יום יימסרו לך המסמכים הרלוונטיים, לרבות טופס 161, אישור תקופת העסקה ומכתב שחרור כספים.
+עם סיום העסקתך תידרשי להשיב כל ציוד השייך לקואופרטיב או ללקוח.
+
+${signature()}`;
+    }
+
+    function buildAbandonmentLetter() {
+      return `תאריך: ${dateValue("letterDate")}
+
+לכבוד: ${formValue("employeeName")}
+ת.ז: ${formValue("employeeId")}
+
+הנדון: זניחת עבודה וסיום יחסי עבודה
+
+${baseOpening()}
+החל מיום ${dateValue("absenceStartDate")} לא התייצבת לעבודה, ללא מתן הודעה מוקדמת וללא הסבר להיעדרותך.
+הקואופרטיב ניסה ליצור עמך קשר במספר הזדמנויות, לרבות בתאריכים ${formValue("contactDates")}, אך לא התקבל מענה ולא שיתפת פעולה עם ניסיונות ההתקשרות.
+בנסיבות אלו, התנהלותך מהווה זניחת עבודה, ולפיכך אנו רואים בכך התפטרות מיוזמתך. מועד סיום יחסי העבודה נקבע ליום ${dateValue("endDate")}.
+בהתאם להוראות הדין, היית מחויבת במתן הודעה מוקדמת בת ${formValue("noticeDays")} ימים, והקואופרטיב שומר לעצמו את הזכות לקזז חלף הודעה מוקדמת מגמר החשבון.
+תקופת עבודתך בקואופרטיב הינה מיום ${dateValue("startDate")} ועד יום ${dateValue("endDate")}.
+במסגרת גמר החשבון ישולמו לך זכויותייך על פי דין, ככל שנצברו, לרבות שכר עבודה, פדיון חופשה ודמי הבראה.
+בתוך עד 30 יום יימסרו לך המסמכים הרלוונטיים, לרבות טופס 161, אישור תקופת העסקה ומכתב שחרור כספים.
+עם מועד זה הסתיימו יחסי העבודה בין הצדדים.
+
+${signature()}`;
+    }
+
+    function arabicBaseOpening() {
+      const site = formValue("site");
+      const siteText = site === blank ? "" : ` وفي موقع ${site}`;
+      return `بدأتِ عملكِ في تعاونية التنظيف بتاريخ ${dateValue("startDate")}، بوظيفة ${formValue("role")}${siteText}.`;
+    }
+
+    function arabicDeliveryMethod() {
+      const method = formValue("deliveryMethod");
+      if (method === "במסירה אישית") return "بالتسليم الشخصي";
+      if (method === "דוא\"ל") return "بالبريد الإلكتروني";
+      if (method === "מסרון") return "برسالة نصية";
+      return "";
+    }
+
+    function arabicSignature() {
+      const name = formValue("signatureName");
+      const role = formValue("signatureRole");
+      if (name === blank && role === blank) return "مع الاحترام،";
+      if (role === blank) return `مع الاحترام،\n${name}`;
+      if (name === blank) return `مع الاحترام،\n${role}`;
+      return `مع الاحترام،\n${name}\n${role}`;
+    }
+
+    function buildArabicResignationLetter() {
+      let noticeStatus = formValue("resignationNoticeStatus");
+      if (noticeStatus === "הודעה מוקדמת ניתנה כנדרש") {
+        noticeStatus = "تم تقديم بلاغ مسبق كما هو مطلوب";
+      } else if (rawFormValue("offsetNotice") === "כן, לקזז חלף הודעה מוקדמת") {
+        noticeStatus = "لم يتم تقديم بلاغ مسبق، ولذلك يحق للتعاونية خصم بدل البلاغ المسبق من مستحقاتك";
+      } else {
+        noticeStatus = "لم يتم تقديم بلاغ مسبق، ورغم ذلك تقرر، من باب حسن النية، عدم إجراء الخصم";
+      }
+
+      return `التاريخ: ${dateValue("letterDate")}
+${arabicDeliveryMethod()}
+
+حضرة: ${formValue("employeeName")}
+رقم الهوية: ${formValue("employeeId")}
+
+الموضوع: إنهاء علاقة العمل وتأكيد فترة التشغيل
+
+${arabicBaseOpening()}
+بتاريخ ${dateValue("resignationNoticeDate")} أبلغتِ عن رغبتكِ في الاستقالة من عملكِ، وتقرر أن يكون يوم عملكِ الفعلي الأخير بتاريخ ${dateValue("endDate")}.
+وفقاً لأحكام القانون، كان عليكِ تقديم بلاغ مسبق. مدة البلاغ المسبق التي كنتِ ملزمة بها هي ${formValue("noticeDays")} أيام. ${noticeStatus}.
+فترة عملكِ في التعاونية هي من تاريخ ${dateValue("startDate")} وحتى تاريخ ${dateValue("endDate")}.
+في إطار الحساب النهائي ستُدفع لكِ جميع حقوقكِ وفقاً للقانون، بما في ذلك الأجر الأخير، بدل أيام الإجازة غير المستغلة، مستحقات النقاهة بقدر ما تراكمت، وأي حق إضافي مستحق لكِ.
+خلال مدة تصل إلى 30 يوماً من تاريخ انتهاء عملكِ ستُسلّم لكِ المستندات المطلوبة، بما في ذلك نموذج 161، تأكيد فترة التشغيل، ورسالة تحرير الأموال لصناديق التقاعد/الادخار.
+مع استكمال الحساب النهائي وتسليم المستندات المذكورة، تكون علاقة العمل بين الطرفين قد انتهت.
+
+${arabicSignature()}`;
+    }
+
+    function buildArabicDismissalLetter() {
+      const reasonText = cleanSentence(formValue("dismissalReason"));
+      const reasonLine = reasonText ? ` ${reasonText}.` : "";
+      const noticeMethod = formValue("noticeMethod") === "בעבודה בפועל"
+        ? `من خلال العمل الفعلي حتى تاريخ ${dateValue("workUntilDate")}`
+        : "كدفع بدل بلاغ مسبق";
+
+      return `التاريخ: ${dateValue("letterDate")}
+
+حضرة: ${formValue("employeeName")}
+رقم الهوية: ${formValue("employeeId")}
+
+الموضوع: إشعار بإنهاء العمل
+
+${arabicBaseOpening()}
+بتاريخ ${dateValue("hearingDate")} أُجري لكِ إجراء استماع وفقاً للقانون، وفي إطاره أُتيحت لكِ فرصة كاملة لعرض ادعاءاتكِ بخصوص استمرار تشغيلكِ.
+بعد فحص مجمل الظروف والاعتبارات، تقرر إنهاء تشغيلكِ في التعاونية.${reasonLine}
+وفقاً لأحكام القانون، يحق لكِ الحصول على بلاغ مسبق لمدة ${formValue("noticeDays")} أيام. سيتم تقديم البلاغ المسبق ${noticeMethod}.
+فترة عملكِ في التعاونية هي من تاريخ ${dateValue("startDate")} وحتى تاريخ ${dateValue("endDate")}.
+تُحدد أهليتكِ للحصول على تعويضات الإقالة وفقاً لأحكام القانون وظروف إنهاء تشغيلكِ.
+في إطار الحساب النهائي ستُدفع لكِ جميع حقوقكِ وفقاً للقانون، بما في ذلك الأجر الأخير، بدل الإجازة، مستحقات النقاهة، وأي حق إضافي بقدر ما يكون مستحقاً لكِ.
+خلال مدة تصل إلى 30 يوماً ستُسلّم لكِ المستندات ذات الصلة، بما في ذلك نموذج 161، تأكيد فترة التشغيل، ورسالة تحرير الأموال.
+عند انتهاء تشغيلكِ، سيُطلب منكِ إعادة كل معدات تعود للتعاونية أو للعميل.
+
+${arabicSignature()}`;
+    }
+
+    function buildArabicAbandonmentLetter() {
+      return `التاريخ: ${dateValue("letterDate")}
+
+حضرة: ${formValue("employeeName")}
+رقم الهوية: ${formValue("employeeId")}
+
+الموضوع: ترك العمل وإنهاء علاقة العمل
+
+${arabicBaseOpening()}
+ابتداءً من تاريخ ${dateValue("absenceStartDate")} لم تحضري إلى العمل، دون تقديم بلاغ مسبق ودون تقديم تفسير لغيابكِ.
+حاولت التعاونية التواصل معكِ في عدة مناسبات، بما في ذلك في التواريخ ${formValue("contactDates")}، إلا أنه لم يتم تلقي رد ولم تتعاوني مع محاولات التواصل.
+في هذه الظروف، يشكل تصرفكِ تركاً للعمل، ولذلك نرى في ذلك استقالة بمبادرتكِ. تقرر أن يكون موعد انتهاء علاقة العمل بتاريخ ${dateValue("endDate")}.
+وفقاً لأحكام القانون، كنتِ ملزمة بتقديم بلاغ مسبق لمدة ${formValue("noticeDays")} أيام، وتحتفظ التعاونية بحقها في خصم بدل البلاغ المسبق من الحساب النهائي.
+فترة عملكِ في التعاونية هي من تاريخ ${dateValue("startDate")} وحتى تاريخ ${dateValue("endDate")}.
+في إطار الحساب النهائي ستُدفع لكِ حقوقكِ وفقاً للقانون، بقدر ما تراكمت، بما في ذلك أجر العمل، بدل الإجازة، ومستحقات النقاهة.
+خلال مدة تصل إلى 30 يوماً ستُسلّم لكِ المستندات ذات الصلة، بما في ذلك نموذج 161، تأكيد فترة التشغيل، ورسالة تحرير الأموال.
+بهذا الموعد تكون علاقة العمل بين الطرفين قد انتهت.
+
+${arabicSignature()}`;
+    }
+
+    function buildArabicLetter() {
+      if (currentCategory === "dismissal") return buildArabicDismissalLetter();
+      if (currentCategory === "abandonment") return buildArabicAbandonmentLetter();
+      return buildArabicResignationLetter();
+    }
+
+    function addParagraphNumbers(letter) {
+      const lines = letter.split("\n");
+      const subjectIndex = lines.findIndex((line) => line.trim().startsWith("הנדון:"));
+      const signatureIndex = lines.findIndex((line) => line.trim() === "בברכה,");
+      if (subjectIndex === -1 || signatureIndex === -1) return letter;
+
+      let counter = 1;
+      return lines.map((line, index) => {
+        const trimmed = line.trim();
+        const shouldNumber = index > subjectIndex && index < signatureIndex && trimmed;
+        if (!shouldNumber) return line;
+        return `${counter++}. ${trimmed}`;
+      }).join("\n");
+    }
+
+    function addArabicParagraphNumbers(letter) {
+      const lines = letter.split("\n");
+      const subjectIndex = lines.findIndex((line) => line.trim().startsWith("الموضوع:"));
+      const signatureIndex = lines.findIndex((line) => line.trim() === "مع الاحترام،");
+      if (subjectIndex === -1 || signatureIndex === -1) return letter;
+
+      let counter = 1;
+      return lines.map((line, index) => {
+        const trimmed = line.trim();
+        const shouldNumber = index > subjectIndex && index < signatureIndex && trimmed;
+        if (!shouldNumber) return line;
+        return `${counter++}. ${trimmed}`;
+      }).join("\n");
+    }
+
+    function buildLetter() {
+      if (!canGenerateLetter()) {
+        return "לא ניתן להפיק מכתב פיטורים לפני ביצוע הליך שימוע כדין.";
+      }
+      let letter = buildResignationLetter();
+      if (currentCategory === "dismissal") letter = buildDismissalLetter();
+      if (currentCategory === "abandonment") letter = buildAbandonmentLetter();
+      const numberedHebrew = addParagraphNumbers(letter);
+      if (!document.getElementById("includeArabic").checked) return numberedHebrew;
+      return `${numberedHebrew}\n\n\nתרגום לערבית\n\n${addArabicParagraphNumbers(buildArabicLetter())}`;
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function letterTextToHtml(text) {
+      const lines = text.split("\n");
+      return `<div class="letter-text">${lines.map((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return `<p class="letter-line">&nbsp;</p>`;
+        const numbered = trimmed.match(/^(\d+)\.\s+(.+)$/);
+        if (numbered) {
+          return `<p class="letter-paragraph"><span class="number">${numbered[1]}.</span><span class="content">${escapeHtml(numbered[2])}</span></p>`;
+        }
+        return `<p class="letter-line">${escapeHtml(trimmed)}</p>`;
+      }).join("")}</div>`;
+    }
+
+    function renderLetterPages() {
+      if (!canGenerateLetter()) {
+        preview.textContent = buildLetter();
+        return;
+      }
+
+      let hebrew = buildResignationLetter();
+      if (currentCategory === "dismissal") hebrew = buildDismissalLetter();
+      if (currentCategory === "abandonment") hebrew = buildAbandonmentLetter();
+
+      const pages = [
+        `<section class="letter-page hebrew"><img class="letterhead-print" src="${letterheadUrl()}" alt="" /><div class="preview-content">${letterTextToHtml(addParagraphNumbers(hebrew))}</div></section>`
+      ];
+
+      if (document.getElementById("includeArabic").checked) {
+        pages.push(`<section class="letter-page arabic"><img class="letterhead-print" src="${letterheadUrl()}" alt="" /><div class="preview-content">${letterTextToHtml(addArabicParagraphNumbers(buildArabicLetter()))}</div></section>`);
+      }
+
+      preview.innerHTML = pages.join("");
+    }
+
+    function getLetterPageHtml() {
+      let hebrew = buildResignationLetter();
+      if (currentCategory === "dismissal") hebrew = buildDismissalLetter();
+      if (currentCategory === "abandonment") hebrew = buildAbandonmentLetter();
+
+      const pages = [
+        { className: "hebrew", html: letterTextToHtml(addParagraphNumbers(hebrew)) }
+      ];
+
+      if (document.getElementById("includeArabic").checked) {
+        pages.push({ className: "arabic", html: letterTextToHtml(addArabicParagraphNumbers(buildArabicLetter())) });
+      }
+
+      return pages;
+    }
+
+    function buildPrintDocument() {
+      const pages = getLetterPageHtml().map((page) => `
+        <section class="print-page ${page.className}">
+          <img class="letterhead" src="${letterheadUrl()}" alt="" />
+          <div class="print-content">${page.html}</div>
+        </section>
+      `).join("");
+
+      return `<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>מכתב סיום העסקה</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    body { font-family: Arial, "Noto Sans Hebrew", "Noto Sans Arabic", sans-serif; color: #11101d; }
+    .print-page {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      padding: 0;
+      overflow: hidden;
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .print-page + .print-page {
+      page-break-before: always;
+      break-before: page;
+    }
+    .letterhead {
+      display: block;
+      width: 210mm;
+      height: 297mm;
+      object-fit: contain;
+      object-position: center;
+    }
+    .print-content {
+      position: absolute;
+      top: 40mm;
+      right: 20mm;
+      bottom: 35mm;
+      left: 20mm;
+      font-size: 11pt;
+      line-height: 1.45;
+      direction: rtl;
+      text-align: right;
+    }
+    .arabic .print-content {
+      font-family: Arial, "Noto Sans Arabic", sans-serif;
+    }
+    .letter-text { display: grid; gap: 7px; }
+    .letter-line { margin: 0; }
+    .letter-paragraph {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      align-items: start;
+      margin: 0;
+    }
+    .letter-paragraph .number { text-align: left; direction: ltr; }
+    .letter-paragraph .content { text-align: right; }
+  </style>
+</head>
+<body>${pages}</body>
+</html>`;
+    }
+
+    function encodePrintPayload(pages) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(pages))));
+    }
+
+    function renderCategories() {
+      categoryList.innerHTML = "";
+      Object.entries(categories).forEach(([key, category]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `category-button${key === currentCategory ? " active" : ""}`;
+        button.innerHTML = `<strong>${category.title}</strong><span>${category.subtitle}</span>`;
+        button.addEventListener("click", () => {
+          currentCategory = key;
+          render();
+        });
+        categoryList.appendChild(button);
+      });
+    }
+
+    function renderDynamicFields() {
+      dynamicFields.innerHTML = "";
+      categories[currentCategory].dynamicFields.forEach((field) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field";
+        if (field.type === "checkbox") wrapper.classList.add("spaced-field");
+        if (field.showWhen) {
+          wrapper.dataset.showWhenField = field.showWhen.field;
+          wrapper.dataset.showWhenValue = field.showWhen.value;
+        }
+
+        const label = document.createElement("label");
+        label.textContent = field.label;
+        label.htmlFor = field.id;
+        wrapper.appendChild(label);
+
+        if (field.type === "textarea") {
+          const textarea = document.createElement("textarea");
+          textarea.id = field.id;
+          textarea.name = field.id;
+          textarea.placeholder = field.placeholder || "";
+          textarea.addEventListener("input", updatePreview);
+          wrapper.appendChild(textarea);
+        } else if (field.type === "checkbox") {
+          const row = document.createElement("label");
+          row.className = "radio-row";
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.id = field.id;
+          input.name = field.id;
+          input.addEventListener("change", updatePreview);
+          const text = document.createElement("span");
+          text.textContent = field.label;
+          row.append(input, text);
+          wrapper.innerHTML = "";
+          wrapper.appendChild(row);
+        } else if (field.type === "select") {
+          const select = document.createElement("select");
+          select.id = field.id;
+          select.name = field.id;
+          field.options.forEach((option) => {
+            const item = document.createElement("option");
+            item.value = option.value;
+            item.textContent = option.label;
+            select.appendChild(item);
+          });
+          select.addEventListener("change", updatePreview);
+          wrapper.appendChild(select);
+        } else if (field.type === "radio") {
+          const group = document.createElement("div");
+          group.className = "choice-group";
+          field.options.forEach((option, index) => {
+            const row = document.createElement("label");
+            row.className = "radio-row";
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = field.id;
+            input.value = option;
+            if (index === 0) input.checked = true;
+            input.addEventListener("change", updatePreview);
+            const text = document.createElement("span");
+            text.textContent = option;
+            row.append(input, text);
+            group.appendChild(row);
+          });
+          wrapper.appendChild(group);
+        } else {
+          const input = document.createElement("input");
+          input.id = field.id;
+          input.name = field.id;
+          input.type = field.type;
+          input.placeholder = field.placeholder || "";
+          input.addEventListener("input", updatePreview);
+          wrapper.appendChild(input);
+        }
+
+        dynamicFields.appendChild(wrapper);
+      });
+    }
+
+    function updateConditionalFields() {
+      dynamicFields.querySelectorAll("[data-show-when-field]").forEach((field) => {
+        const controller = field.dataset.showWhenField;
+        const expected = field.dataset.showWhenValue;
+        const shouldShow = rawFormValue(controller) === expected;
+        field.style.display = shouldShow ? "" : "none";
+      });
+    }
+
+    function renderChecklist() {
+      checklist.innerHTML = "";
+      categories[currentCategory].checklist.forEach((item) => {
+        const label = document.createElement("label");
+        label.className = "check-item";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        const span = document.createElement("span");
+        span.textContent = item;
+        label.append(input, span);
+        checklist.appendChild(label);
+      });
+    }
+
+    function updatePreview() {
+      updateNoticeCalculator();
+      updateConditionalFields();
+      renderSmartAlerts();
+      renderLetterPages();
+      const disabled = !canGenerateLetter();
+      document.getElementById("copyBtn").disabled = disabled;
+      document.getElementById("printBtn").disabled = disabled;
+    }
+
+    function render() {
+      const category = categories[currentCategory];
+      title.textContent = `מכתב סיום העסקה - ${category.title}`;
+      subtitle.textContent = category.subtitle;
+      renderCategories();
+      renderDynamicFields();
+      renderChecklist();
+      updatePreview();
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    form.addEventListener("input", updatePreview);
+    form.addEventListener("change", updatePreview);
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(buildLetter());
+        showToast("המכתב הועתק");
+      } catch (error) {
+        const helper = document.createElement("textarea");
+        helper.value = buildLetter();
+        helper.style.position = "fixed";
+        helper.style.top = "-1000px";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+        showToast("המכתב הועתק");
+      }
+    });
+
+    document.getElementById("printBtn").addEventListener("click", async () => {
+      const payload = encodePrintPayload(getLetterPageHtml());
+      const printUrl = new URL("print.html", window.location.href);
+      printUrl.hash = `payload=${encodeURIComponent(payload)}`;
+      const printWindow = window.open(printUrl.href, "_blank", "width=900,height=1200");
+      if (!printWindow) {
+        showToast("הדפדפן חסם חלון הדפסה");
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      form.reset();
+      render();
+      showToast("הטופס נוקה");
+    });
+
+    document.getElementById("letterDate").valueAsDate = new Date();
+    render();
+  </script>
+</body>
+</html>
