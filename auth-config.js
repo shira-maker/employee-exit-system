@@ -1,5 +1,5 @@
 window.EMEL_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDWO5vs4sfQIcBKkT0m9X6dmXm_yoBQ5U8",
+  apiKey: "AIzaSyDWO5vs4sfQlcBKkT0m9X6dmXm_yoBQ5U8",
   authDomain: "employee-exit-system-ba003.firebaseapp.com",
   projectId: "employee-exit-system-ba003",
   storageBucket: "employee-exit-system-ba003.firebasestorage.app",
@@ -8,3 +8,4 @@ window.EMEL_FIREBASE_CONFIG = {
 };
 
 window.EMEL_ALLOWED_EMAIL_DOMAIN = "";
+
