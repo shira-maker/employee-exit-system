@@ -33,15 +33,6 @@
       line-height: 1.55;
     }
 
-    body.auth-pending .app,
-    body.auth-required .app {
-      display: none;
-    }
-
-    body.authenticated .auth-screen {
-      display: none;
-    }
-
     button,
     input,
     select,
@@ -53,53 +44,6 @@
       min-height: 100vh;
       display: grid;
       grid-template-columns: 320px 1fr;
-    }
-
-    .auth-screen {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 28px;
-      background: var(--purple-dark);
-    }
-
-    .auth-card {
-      width: min(440px, 100%);
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 30px;
-      text-align: center;
-    }
-
-    .auth-card img {
-      width: 160px;
-      height: 100px;
-      object-fit: contain;
-      margin-bottom: 18px;
-    }
-
-    .auth-card h1 {
-      color: var(--purple-dark);
-      margin-bottom: 8px;
-    }
-
-    .auth-card p {
-      color: var(--muted);
-      margin-bottom: 18px;
-    }
-
-    .auth-status,
-    .auth-error {
-      min-height: 24px;
-      margin-top: 14px;
-      font-size: 14px;
-    }
-
-    .auth-error {
-      color: var(--red);
-      font-weight: 700;
     }
 
     aside {
@@ -199,20 +143,6 @@
       justify-content: space-between;
       gap: 18px;
       align-items: flex-start;
-    }
-
-    .auth-userbar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .auth-userbar strong {
-      color: var(--purple-dark);
     }
 
     h1,
@@ -686,18 +616,7 @@
     }
   </style>
 </head>
-<body class="auth-pending">
-  <section class="auth-screen" aria-labelledby="authTitle">
-    <div class="auth-card">
-      <img src="assets/emel-logo.png" alt="אמל קואופרטיב הניקיון" />
-      <h1 id="authTitle">כניסה למערכת</h1>
-      <p>כדי להשתמש בכלי סיום העסקה, התחברי עם חשבון Google.</p>
-      <button class="btn" type="button" id="loginBtn">התחברות עם Google</button>
-      <div class="auth-status" id="authStatus">בודקת הרשאות...</div>
-      <div class="auth-error" id="authError" role="alert"></div>
-    </div>
-  </section>
-
+<body>
   <div class="app">
     <aside>
       <div class="brand">
@@ -718,10 +637,6 @@
         <div>
           <h1 id="pageTitle">מכתב סיום העסקה</h1>
           <p class="subtitle" id="pageSubtitle"></p>
-        </div>
-        <div class="auth-userbar" aria-label="פרטי התחברות">
-          <span>מחוברת: <strong id="authUserEmail"></strong></span>
-          <button class="btn secondary" type="button" id="signOutBtn">יציאה</button>
         </div>
       </section>
 
@@ -1726,93 +1641,6 @@ ${arabicSignature()}`;
 
     document.getElementById("letterDate").valueAsDate = new Date();
     render();
-  </script>
-  <script src="auth-config.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      onAuthStateChanged,
-      signInWithPopup,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-    const loginBtn = document.getElementById("loginBtn");
-    const signOutBtn = document.getElementById("signOutBtn");
-    const authStatus = document.getElementById("authStatus");
-    const authError = document.getElementById("authError");
-    const authUserEmail = document.getElementById("authUserEmail");
-    const firebaseConfig = window.EMEL_FIREBASE_CONFIG || {};
-    const allowedDomain = (window.EMEL_ALLOWED_EMAIL_DOMAIN || "").trim().toLowerCase();
-
-    function setAuthState(state) {
-      document.body.classList.remove("auth-pending", "auth-required", "authenticated");
-      document.body.classList.add(state);
-    }
-
-    function showAuthMessage(message, isError = false) {
-      authStatus.textContent = isError ? "" : message;
-      authError.textContent = isError ? message : "";
-    }
-
-    function hasFirebaseConfig(config) {
-      return Boolean(
-        config.apiKey &&
-        config.authDomain &&
-        config.projectId &&
-        config.appId &&
-        !String(config.apiKey).includes("PASTE_")
-      );
-    }
-
-    if (!hasFirebaseConfig(firebaseConfig)) {
-      setAuthState("auth-required");
-      loginBtn.disabled = true;
-      showAuthMessage("כדי להפעיל התחברות, צריך למלא את פרטי Firebase בקובץ auth-config.js.", true);
-    } else {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
-
-      loginBtn.addEventListener("click", async () => {
-        showAuthMessage("פותחת חלון התחברות...");
-        loginBtn.disabled = true;
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (error) {
-          showAuthMessage("ההתחברות לא הושלמה. אפשר לנסות שוב.", true);
-        } finally {
-          loginBtn.disabled = false;
-        }
-      });
-
-      signOutBtn.addEventListener("click", async () => {
-        await signOut(auth);
-      });
-
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          authUserEmail.textContent = "";
-          setAuthState("auth-required");
-          showAuthMessage("יש להתחבר כדי להיכנס למערכת.");
-          return;
-        }
-
-        const email = (user.email || "").toLowerCase();
-        const emailDomain = email.split("@")[1] || "";
-        if (allowedDomain && emailDomain !== allowedDomain) {
-          await signOut(auth);
-          setAuthState("auth-required");
-          showAuthMessage("הכניסה מוגבלת לחשבון הארגוני בלבד.", true);
-          return;
-        }
-
-        authUserEmail.textContent = user.email || "חשבון Google";
-        setAuthState("authenticated");
-        showAuthMessage("");
-      });
-    }
   </script>
 </body>
 </html>
